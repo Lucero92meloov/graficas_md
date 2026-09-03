@@ -33,10 +33,12 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
   const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num || 0);
   const engagementRatio = maxPrimary > 0 ? ((maxSecondary / maxPrimary) * 100).toFixed(1) : '0';
 
-  const exportWidth = 1100;
+  // Cálculo dinámico de ancho para que NUNCA se corte la imagen sin importar cuántos puntos tenga la tabla (mínimo 70px por punto)
+  const minPointWidth = 70;
+  const dynamicExportWidth = Math.max((data ? data.length : 0) * minPointWidth, 1200);
   const scrollPointWidth = Math.max((data ? data.length : 0) * 60, 900);
 
-  // Función de descarga e interacción compatible 100% con iOS Safari e iPhone
+  // Función de descarga e interacción compatible con iPhone, Android y escritorio
   const handleDownloadImage = async () => {
     if (!exportBoxRef.current) return;
     try {
@@ -49,9 +51,9 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
         backgroundColor: '#F5EFEB',
         quality: 1.0,
         pixelRatio: 2,
-        width: exportWidth,
+        width: dynamicExportWidth,
         style: {
-          width: `${exportWidth}px`,
+          width: `${dynamicExportWidth}px`,
           overflow: 'visible',
           maxWidth: 'none'
         }
@@ -308,13 +310,13 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
       <div
         ref={exportBoxRef}
         style={{
-          width: isExporting ? `${exportWidth}px` : '100%',
+          width: isExporting ? `${dynamicExportWidth}px` : '100%',
           minWidth: '100%'
         }}
         className="bg-[#F5EFEB] space-y-3"
       >
         {/* Tarjetas resumen superior */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div className={`grid ${isExporting ? 'grid-cols-4' : 'grid-cols-2 sm:grid-cols-4'} gap-2 text-xs`}>
           <div className="bg-white border border-[#E2D9D2] p-2.5 rounded-xl flex items-center gap-2 shadow-xs overflow-hidden">
             <div className="p-1.5 bg-[#C8D9E6]/50 border border-[#9fbcd2] rounded-lg text-[#3A75A4] shrink-0">
               <AnimatedIcon name="eye" size={16} />
@@ -356,19 +358,19 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
           </div>
         </div>
 
-        {/* Gráfica Lineal Recharts */}
-        <div className="bg-white border border-[#E2D9D2] rounded-xl p-2 sm:p-4 shadow-xs overflow-x-auto">
+        {/* Gráfica Lineal Recharts (Sin scrollbar ni cortes durante exportación) */}
+        <div className={`bg-white border border-[#E2D9D2] rounded-xl p-2 sm:p-4 shadow-xs ${isExporting ? 'overflow-visible' : 'overflow-x-auto'}`}>
           <div
             style={{
-              width: (expandHorizontal && !isExporting) ? `${scrollPointWidth}px` : '100%',
+              width: isExporting ? `${dynamicExportWidth}px` : ((expandHorizontal && !isExporting) ? `${scrollPointWidth}px` : '100%'),
               minWidth: '100%'
             }}
-            className="h-[300px] sm:h-[360px]"
+            className="h-[320px] sm:h-[380px]"
           >
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={data}
-                margin={{ top: 30, right: 25, left: -15, bottom: 50 }}
+                margin={{ top: 30, right: 35, left: -15, bottom: 50 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#EFE8E1" vertical={false} />
 
