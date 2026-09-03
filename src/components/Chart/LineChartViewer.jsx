@@ -36,7 +36,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
   const exportWidth = 1100;
   const scrollPointWidth = Math.max((data ? data.length : 0) * 60, 900);
 
-  // Función para descargar la imagen PNG completa
+  // Función de descarga e interacción compatible 100% con iOS Safari e iPhone
   const handleDownloadImage = async () => {
     if (!exportBoxRef.current) return;
     try {
@@ -57,10 +57,36 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
         }
       });
 
+      // Convertir Data URL a Blob de imagen PNG
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const filename = `grafica-vistas-likes-${Date.now()}.png`;
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      // iOS Safari e iPhone / iPad (Web Share API nativo)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: 'Reporte de Rendimiento - MD Chart Studio',
+            text: 'Gráfica de Visualizaciones y Likes',
+            files: [file]
+          });
+          confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+          return;
+        } catch (shareErr) {
+          if (shareErr.name === 'AbortError') return; // Usuario canceló el menú nativo
+        }
+      }
+
+      // Descarga Estándar para escritorio y navegadores compatibles
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.download = `reporte-grafica-paquete-${Date.now()}.png`;
-      link.href = dataUrl;
+      link.download = filename;
+      link.href = blobUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 
       confetti({
         particleCount: 70,
@@ -69,7 +95,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
       });
     } catch (err) {
       console.error('Error al exportar imagen:', err);
-      alert('Hubo un inconveniente al generar la imagen.');
+      alert('Hubo un inconveniente al generar la imagen. Intenta nuevamente.');
     } finally {
       setIsExporting(false);
     }
@@ -95,7 +121,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
     );
   }
 
-  // Componente de Etiqueta Azul (Visualizaciones) - Muestra el valor numérico REAL (ej. 2,560 o 2.6k)
+  // Componente de Etiqueta Azul (Visualizaciones)
   const CustomBlueLabel = (props) => {
     try {
       if (!showPointValues && !isExporting) return null;
@@ -144,7 +170,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
     }
   };
 
-  // Componente de Etiqueta Rosa (Likes) - Muestra el valor numérico REAL (ej. 118)
+  // Componente de Etiqueta Rosa (Likes)
   const CustomPinkLabel = (props) => {
     try {
       if (!showPointValues && !isExporting) return null;
@@ -270,7 +296,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
             onClick={handleDownloadImage}
             disabled={isExporting}
             className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#E07A93] hover:bg-[#c9627a] text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-            title="Descargar la gráfica como imagen PNG"
+            title="Descargar o guardar la gráfica en iPhone / Celular"
           >
             <ImageDown size={14} />
             <span>Descargar Imagen PNG</span>
@@ -417,7 +443,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
           </div>
         </div>
 
-        {/* Componente de Filtro por Paquete Adquirido (Integrado limpiamente) */}
+        {/* Componente de Filtro por Paquete Adquirido */}
         <PackageSelector
           selectedPackage={selectedPackage}
           onSelectPackage={setSelectedPackage}
