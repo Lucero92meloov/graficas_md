@@ -74,16 +74,24 @@ export function parseMarkdownChart(mdContent) {
   dataRows.forEach((row, index) => {
     const cells = row.split('|').slice(1, -1).map(c => c.trim());
     if (cells.length >= 2) {
+      const cell1Str = cells[1] || '';
+      const cell2Str = cells[2] || '';
+
+      // Si ambas celdas de datos están vacías/blancas, es una fila no registrada o plantilla; omitir
+      if (cell1Str === '' && cell2Str === '') {
+        return;
+      }
+
       const fecha = cells[0] || `Punto ${index + 1}`;
       
       const cleanNum = (str) => {
-        if (!str) return 0;
+        if (!str || str.trim() === '') return 0;
         const val = parseFloat(str.replace(/[^0-9.-]/g, ''));
         return isNaN(val) ? 0 : val;
       };
 
-      const primaryVal = cleanNum(cells[1]);
-      const secondaryVal = cells[2] ? cleanNum(cells[2]) : 0;
+      const primaryVal = cleanNum(cell1Str);
+      const secondaryVal = cell2Str !== '' ? cleanNum(cell2Str) : 0;
 
       if (primaryVal > maxPrimary) maxPrimary = primaryVal;
       if (secondaryVal > maxSecondary) maxSecondary = secondaryVal;

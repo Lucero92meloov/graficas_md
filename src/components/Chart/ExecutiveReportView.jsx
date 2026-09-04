@@ -15,6 +15,84 @@ import {
 import { Activity, Eye, Heart, TrendingUp, Calendar, FileText, CheckCircle2 } from 'lucide-react';
 import { PackageSelector } from '../PackageFilter/PackageSelector';
 
+
+
+// Componente de Etiqueta Azul (Visualizaciones)
+const CustomBlueLabel = (props) => {
+  try {
+    const { x, y, index, data, payload } = props;
+    if (x === undefined || y === undefined || isNaN(x) || isNaN(y)) return null;
+
+    const item = (data && index !== undefined && data[index]) ? data[index] : (payload || {});
+    const value = item.primaryVal;
+    if (value === undefined || value === null) return null;
+
+    const primaryPct = item.primaryPct || 0;
+    const secondaryPct = item.secondaryPct || 0;
+    const isHigherThanPink = primaryPct >= secondaryPct;
+    const offsetY = isHigherThanPink ? -18 : 18;
+    const formatted = value >= 1000 ? `${(value / 1000).toFixed(1)}k` : `${value}`;
+
+    return (
+      <g transform={`translate(${x},${y + offsetY})`}>
+        <rect x="-17" y="-11" width="34" height="16" rx="4" fill="#3A75A4" opacity="0.95" />
+        <text
+          x="0"
+          y="0"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill="#FFFFFF"
+          fontSize="9.5"
+          fontWeight="bold"
+          fontFamily="system-ui, -apple-system, sans-serif"
+        >
+          {formatted}
+        </text>
+      </g>
+    );
+  } catch {
+    return null;
+  }
+};
+
+// Componente de Etiqueta Rosa (Likes)
+const CustomPinkLabel = (props) => {
+  try {
+    const { x, y, index, data, payload } = props;
+    if (x === undefined || y === undefined || isNaN(x) || isNaN(y)) return null;
+
+    const item = (data && index !== undefined && data[index]) ? data[index] : (payload || {});
+    const value = item.secondaryVal;
+    if (value === undefined || value === null) return null;
+
+    const primaryPct = item.primaryPct || 0;
+    const secondaryPct = item.secondaryPct || 0;
+    const isHigherThanBlue = secondaryPct > primaryPct;
+    const offsetY = isHigherThanBlue ? -18 : 18;
+    const formatted = value >= 1000 ? `${(value / 1000).toFixed(1)}k` : `${value}`;
+
+    return (
+      <g transform={`translate(${x},${y + offsetY})`}>
+        <rect x="-17" y="-11" width="34" height="16" rx="4" fill="#E07A93" opacity="0.95" />
+        <text
+          x="0"
+          y="0"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill="#FFFFFF"
+          fontSize="9.5"
+          fontWeight="bold"
+          fontFamily="system-ui, -apple-system, sans-serif"
+        >
+          {formatted}
+        </text>
+      </g>
+    );
+  } catch {
+    return null;
+  }
+};
+
 export function ExecutiveReportView({
   data,
   maxPrimary,
@@ -136,17 +214,39 @@ export function ExecutiveReportView({
           </h3>
           <span className="text-[10px] font-mono text-[#576B80]">{totalPoints} Puntos de medición</span>
         </div>
-        <div className="h-[280px] sm:h-[320px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 20, right: 55, left: -10, bottom: 50 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#EFE8E1" vertical={false} />
-              <XAxis dataKey="fecha" stroke="#576B80" tick={{ fill: '#576B80', fontSize: 9 }} angle={-45} textAnchor="end" dy={6} interval={0} />
-              <YAxis stroke="#576B80" tick={{ fill: '#576B80', fontSize: 10 }} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-              <RechartsTooltip />
-              <Line type="monotone" dataKey="primaryPct" name={displayPrimaryKey} stroke="#3A75A4" strokeWidth={3} dot={{ r: 4, fill: '#C8D9E6', stroke: '#3A75A4', strokeWidth: 2 }} />
-              <Line type="monotone" dataKey="secondaryPct" name={displaySecondaryKey} stroke="#E07A93" strokeWidth={3} dot={{ r: 4, fill: '#F7C9D4', stroke: '#E07A93', strokeWidth: 2 }} />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="h-[300px] sm:h-[350px] w-full overflow-x-auto">
+          <div style={{ width: '100%', minWidth: Math.max(totalPoints * 65, 800) }} className="h-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data} margin={{ top: 30, right: 35, left: -10, bottom: 50 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#EFE8E1" vertical={false} />
+                <XAxis dataKey="fecha" stroke="#576B80" tick={{ fill: '#576B80', fontSize: 9 }} angle={-45} textAnchor="end" dy={6} interval={0} />
+                <YAxis stroke="#576B80" tick={{ fill: '#576B80', fontSize: 10 }} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                <RechartsTooltip />
+                <Line
+                  type="monotone"
+                  connectNulls={true}
+                  isAnimationActive={false}
+                  dataKey="primaryPct"
+                  name={displayPrimaryKey}
+                  stroke="#3A75A4"
+                  strokeWidth={3}
+                  dot={{ r: 4.5, fill: '#C8D9E6', stroke: '#3A75A4', strokeWidth: 2 }}
+                  label={(props) => <CustomBlueLabel {...props} data={data} />}
+                />
+                <Line
+                  type="monotone"
+                  connectNulls={true}
+                  isAnimationActive={false}
+                  dataKey="secondaryPct"
+                  name={displaySecondaryKey}
+                  stroke="#E07A93"
+                  strokeWidth={3}
+                  dot={{ r: 4.5, fill: '#F7C9D4', stroke: '#E07A93', strokeWidth: 2 }}
+                  label={(props) => <CustomPinkLabel {...props} data={data} />}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
