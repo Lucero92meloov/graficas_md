@@ -15,6 +15,7 @@ import { PackageSelector } from '../PackageFilter/PackageSelector';
 import { PieChartViewer } from './PieChartViewer';
 import { BarChartViewer } from './BarChartViewer';
 import { ExecutiveReportView } from './ExecutiveReportView';
+import { ExportModal } from '../UI/ExportModal';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import confetti from 'canvas-confetti';
@@ -26,6 +27,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
   const [expandHorizontal, setExpandHorizontal] = useState(false); // 100% ajustada por defecto
   const [selectedPackage, setSelectedPackage] = useState(null); // '2k' | '5k' | etc.
   const [isExporting, setIsExporting] = useState(false);
+  const [exportModalData, setExportModalData] = useState(null);
 
   const exportBoxRef = useRef(null);
 
@@ -107,55 +109,31 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
 
         const filename = `grafica-vistas-likes-${timestamp}.pdf`;
         const pdfBlob = pdf.output('blob');
+        const pdfBlobUrl = URL.createObjectURL(pdfBlob);
         const file = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-        // iOS Safari e iPhone / iPad (Web Share API nativo)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              title: 'Reporte de Rendimiento - MD Chart Studio',
-              text: 'Gráfica de Visualizaciones y Likes (PDF)',
-              files: [file]
-            });
-            confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
-            return;
-          } catch (shareErr) {
-            if (shareErr.name === 'AbortError') return;
-          }
-        }
-
-        pdf.save(filename);
+        setExportModalData({
+          format: 'pdf',
+          filename,
+          dataUrl,
+          blobUrl: pdfBlobUrl,
+          file
+        });
       } else {
         // Exportar a PNG
         const res = await fetch(dataUrl);
         const blob = await res.blob();
         const filename = `grafica-vistas-likes-${timestamp}.png`;
+        const pngBlobUrl = URL.createObjectURL(blob);
         const file = new File([blob], filename, { type: 'image/png' });
 
-        // iOS Safari e iPhone / iPad (Web Share API nativo)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              title: 'Reporte de Rendimiento - MD Chart Studio',
-              text: 'Gráfica de Visualizaciones y Likes (PNG)',
-              files: [file]
-            });
-            confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
-            return;
-          } catch (shareErr) {
-            if (shareErr.name === 'AbortError') return;
-          }
-        }
-
-        // Descarga Estándar para escritorio y navegadores compatibles
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = blobUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        setExportModalData({
+          format: 'png',
+          filename,
+          dataUrl,
+          blobUrl: pngBlobUrl,
+          file
+        });
       }
 
       confetti({
@@ -626,6 +604,13 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
           </>
         )}
       </div>
+
+      {/* Modal de Exportación y Descarga para iOS/Desktop */}
+      <ExportModal
+        isOpen={!!exportModalData}
+        onClose={() => setExportModalData(null)}
+        exportData={exportModalData}
+      />
     </div>
   );
 }
