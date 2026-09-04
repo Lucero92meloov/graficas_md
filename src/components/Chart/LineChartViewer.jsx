@@ -21,11 +21,11 @@ import { jsPDF } from 'jspdf';
 import confetti from 'canvas-confetti';
 
 export function LineChartViewer({ markdownContent, exportHandlerRef }) {
-  const [chartType, setChartType] = useState('line'); // 'line' | 'pie' | 'bar' | 'report'
-  const [scaleMode, setScaleMode] = useState('percentage'); // 'percentage' | 'absolute'
-  const [showPointValues, setShowPointValues] = useState(false); // Vista limpia por defecto
-  const [expandHorizontal, setExpandHorizontal] = useState(false); // 100% ajustada por defecto
-  const [selectedPackage, setSelectedPackage] = useState(null); // '2k' | '5k' | etc.
+  const [chartType, setChartType] = useState('report'); // 'report' únicamente
+  const [scaleMode, setScaleMode] = useState('percentage');
+  const [showPointValues, setShowPointValues] = useState(false);
+  const [expandHorizontal, setExpandHorizontal] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportModalData, setExportModalData] = useState(null);
 
@@ -40,7 +40,6 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
   const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num || 0);
   const engagementRatio = maxPrimary > 0 ? ((maxSecondary / maxPrimary) * 100).toFixed(1) : '0';
 
-  // Cálculo dinámico de ancho para que NUNCA se corte la imagen sin importar cuántos puntos tenga la tabla (mínimo 70px por punto)
   const minPointWidth = 70;
   const dynamicExportWidth = Math.max((data ? data.length : 0) * minPointWidth, 1200);
   const scrollPointWidth = Math.max((data ? data.length : 0) * 60, 900);
@@ -327,106 +326,29 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
 
   return (
     <div className="w-full bg-[#F5EFEB] p-2 sm:p-4 pb-4 select-none space-y-3 font-sans">
-      {/* Selector de Tipo de Gráfica y Botones de Control */}
+      {/* Barra de Control de Exportación de Reporte Completo */}
       {!isExporting && (
-        <div className="flex items-center justify-between gap-2 flex-wrap bg-white border border-[#E2D9D2] p-2 rounded-xl shadow-xs">
-          {/* Pestañas de Selección de Modo */}
-          <div className="flex items-center bg-[#F5EFEB] p-1 rounded-lg border border-[#E2D9D2] overflow-x-auto max-w-full">
-            <button
-              onClick={() => setChartType('line')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
-                chartType === 'line'
-                  ? 'bg-[#2F4156] text-[#F5EFEB] shadow-xs'
-                  : 'text-[#2F4156]/70 hover:text-[#2F4156]'
-              }`}
-            >
-              <TrendingUp size={14} />
-              <span>Lineal</span>
-            </button>
-
-            <button
-              onClick={() => setChartType('pie')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
-                chartType === 'pie'
-                  ? 'bg-[#2F4156] text-[#F5EFEB] shadow-xs'
-                  : 'text-[#2F4156]/70 hover:text-[#2F4156]'
-              }`}
-            >
-              <PieIcon size={14} />
-              <span>Pastel</span>
-            </button>
-
-            <button
-              onClick={() => setChartType('bar')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
-                chartType === 'bar'
-                  ? 'bg-[#2F4156] text-[#F5EFEB] shadow-xs'
-                  : 'text-[#2F4156]/70 hover:text-[#2F4156]'
-              }`}
-            >
-              <BarChart3 size={14} />
-              <span>Barras</span>
-            </button>
-
-            <button
-              onClick={() => setChartType('report')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
-                chartType === 'report'
-                  ? 'bg-[#3A75A4] text-white shadow-xs font-extrabold'
-                  : 'text-[#3A75A4] hover:bg-[#C8D9E6]/30'
-              }`}
-            >
+        <div className="flex items-center justify-between gap-2 flex-wrap bg-white border border-[#E2D9D2] p-2.5 rounded-xl shadow-xs">
+          <div className="flex items-center gap-2 px-1 text-xs font-extrabold text-[#2F4156]">
+            <div className="w-6 h-6 rounded-lg bg-[#3A75A4] flex items-center justify-center text-white text-xs">
               <FileSpreadsheet size={14} />
-              <span>Reporte Completo</span>
-            </button>
+            </div>
+            <span>Reporte Ejecutivo Completo</span>
           </div>
 
-          {/* Opciones Adicionales y Botones de Exportación */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {chartType === 'line' && (
-              <>
-                <button
-                  onClick={() => setExpandHorizontal(!expandHorizontal)}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border ${
-                    expandHorizontal
-                      ? 'bg-[#3A75A4] text-white border-[#3A75A4] shadow-xs'
-                      : 'bg-white text-[#2F4156] border-[#E2D9D2] hover:bg-[#F5EFEB]'
-                  }`}
-                  title="Alternar entre ajustar a pantalla o scroll alargado"
-                >
-                  {expandHorizontal ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-                  <span className="hidden sm:inline">{expandHorizontal ? 'Modo Alargado' : 'Ajustar'}</span>
-                </button>
-
-                <button
-                  onClick={() => setShowPointValues(!showPointValues)}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border ${
-                    showPointValues
-                      ? 'bg-[#2F4156] text-[#F5EFEB] border-[#2F4156] shadow-xs'
-                      : 'bg-white text-[#2F4156] border-[#E2D9D2] hover:bg-[#F5EFEB]'
-                  }`}
-                  title="Mostrar u ocultar los números sobre los puntos"
-                >
-                  <Hash size={13} />
-                  <span className="hidden sm:inline">{showPointValues ? 'Valores' : 'Números'}</span>
-                </button>
-              </>
-            )}
-
-            <button
-              onClick={() => handleExportChart('pdf')}
-              disabled={isExporting}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#2F4156] hover:bg-[#1f2d3d] text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
-              title="Descargar o guardar el reporte en documento PDF"
-            >
-              <FileText size={14} />
-              <span>Reporte PDF</span>
-            </button>
-          </div>
+          <button
+            onClick={() => handleExportChart('pdf')}
+            disabled={isExporting}
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#2F4156] hover:bg-[#1f2d3d] text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+            title="Descargar o guardar el reporte en documento PDF"
+          >
+            <FileText size={14} />
+            <span>Reporte PDF</span>
+          </button>
         </div>
       )}
 
-      {/* ÁREA DE EXPORTACIÓN Y CONTENIDO PRINCIPAL */}
+      {/* ÁREA DE EXPORTACIÓN CON REPORTE EJECUTIVO COMPLETO */}
       <div
         ref={exportBoxRef}
         style={{
@@ -435,182 +357,15 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
         }}
         className="bg-[#F5EFEB] space-y-3"
       >
-        {/* VISTA 1: REPORTE EJECUTIVO COMPLETO */}
-        {chartType === 'report' && (
-          <ExecutiveReportView
-            data={data}
-            maxPrimary={maxPrimary}
-            maxSecondary={maxSecondary}
-            primaryKey={primaryKey}
-            secondaryKey={secondaryKey}
-            selectedPackage={selectedPackage}
-            setSelectedPackage={setSelectedPackage}
-          />
-        )}
-
-        {/* VISTA 2: GRÁFICA DE PASTEL */}
-        {chartType === 'pie' && (
-          <PieChartViewer
-            data={data}
-            maxPrimary={maxPrimary}
-            maxSecondary={maxSecondary}
-            primaryKey={primaryKey}
-            secondaryKey={secondaryKey}
-          />
-        )}
-
-        {/* VISTA 3: GRÁFICA DE BARRAS */}
-        {chartType === 'bar' && (
-          <BarChartViewer
-            data={data}
-            primaryKey={primaryKey}
-            secondaryKey={secondaryKey}
-            expandHorizontal={expandHorizontal}
-          />
-        )}
-
-        {/* VISTA 4: GRÁFICA LINEAL TRADICIONAL */}
-        {chartType === 'line' && (
-          <>
-            {/* Tarjetas resumen superior */}
-            <div className={`grid ${isExporting ? 'grid-cols-4' : 'grid-cols-2 sm:grid-cols-4'} gap-2 text-xs`}>
-              <div className="bg-white border border-[#E2D9D2] p-2.5 rounded-xl flex items-center gap-2 shadow-xs overflow-hidden">
-                <div className="p-1.5 bg-[#C8D9E6]/50 border border-[#9fbcd2] rounded-lg text-[#3A75A4] shrink-0">
-                  <AnimatedIcon name="eye" size={16} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-[#576B80] font-medium truncate">{displayPrimaryKey}</p>
-                  <p className="text-xs sm:text-sm font-bold font-mono text-[#3A75A4] truncate">{formatNumber(maxPrimary)}</p>
-                </div>
-              </div>
-
-              <div className="bg-white border border-[#E2D9D2] p-2.5 rounded-xl flex items-center gap-2 shadow-xs overflow-hidden">
-                <div className="p-1.5 bg-[#F7C9D4]/50 border border-[#e8a3b4] rounded-lg text-[#E07A93] shrink-0">
-                  <AnimatedIcon name="heart" size={16} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-[#576B80] font-medium truncate">{displaySecondaryKey}</p>
-                  <p className="text-xs sm:text-sm font-bold font-mono text-[#E07A93] truncate">{formatNumber(maxSecondary)}</p>
-                </div>
-              </div>
-
-              <div className="bg-white border border-[#E2D9D2] p-2.5 rounded-xl flex items-center gap-2 shadow-xs overflow-hidden">
-                <div className="p-1.5 bg-[#FFE1E6] border border-[#F7C9D4] rounded-lg text-[#E07A93] shrink-0">
-                  <TrendingUp size={16} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-[#576B80] font-medium truncate">Ratio Reacción</p>
-                  <p className="text-xs sm:text-sm font-bold font-mono text-[#E07A93] truncate">{engagementRatio}%</p>
-                </div>
-              </div>
-
-              <div className="bg-white border border-[#E2D9D2] p-2.5 rounded-xl flex items-center gap-2 shadow-xs overflow-hidden">
-                <div className="p-1.5 bg-[#FAF5F2] border border-[#E2D9D2] rounded-lg text-[#2F4156] shrink-0">
-                  <Calendar size={16} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-[#576B80] font-medium truncate">Tomas</p>
-                  <p className="text-xs sm:text-sm font-bold font-mono text-[#2F4156] truncate">{data.length}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Gráfica Lineal Recharts */}
-            <div className={`bg-white border border-[#E2D9D2] rounded-xl p-2 sm:p-4 shadow-xs ${isExporting ? 'overflow-visible' : 'overflow-x-auto'}`}>
-              <div
-                style={{
-                  width: isExporting ? `${dynamicExportWidth}px` : ((expandHorizontal && !isExporting) ? `${scrollPointWidth}px` : '100%'),
-                  minWidth: '100%'
-                }}
-                className="h-[320px] sm:h-[380px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={data}
-                    margin={{ top: 30, right: 35, left: -15, bottom: 50 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#EFE8E1" vertical={false} />
-
-                    <XAxis
-                      dataKey="fecha"
-                      stroke="#576B80"
-                      tick={{ fill: '#576B80', fontSize: 9 }}
-                      angle={-45}
-                      textAnchor="end"
-                      dy={6}
-                      interval={0}
-                    />
-
-                    <YAxis
-                      stroke="#576B80"
-                      tick={{ fill: '#576B80', fontSize: 10 }}
-                      domain={scaleMode === 'percentage' ? [0, 100] : ['auto', 'auto']}
-                      tickFormatter={(val) => (scaleMode === 'percentage' ? `${val}%` : formatNumber(val))}
-                    />
-
-                    <Tooltip content={<CustomTooltip />} />
-
-                    {/* Línea Azul = Visualizaciones */}
-                    <Line
-                      type="monotone"
-                      connectNulls={true}
-                      isAnimationActive={false}
-                      dataKey={scaleMode === 'percentage' ? 'primaryPct' : 'primaryVal'}
-                      name={displayPrimaryKey}
-                      stroke="#3A75A4"
-                      strokeWidth={3}
-                      dot={{
-                        r: 4.5,
-                        fill: '#C8D9E6',
-                        stroke: '#3A75A4',
-                        strokeWidth: 2
-                      }}
-                      activeDot={{
-                        r: 6.5,
-                        fill: '#FFFFFF',
-                        stroke: '#3A75A4',
-                        strokeWidth: 3
-                      }}
-                      label={<CustomBlueLabel />}
-                    />
-
-                    {/* Línea Rosa = Likes */}
-                    <Line
-                      type="monotone"
-                      connectNulls={true}
-                      isAnimationActive={false}
-                      dataKey={scaleMode === 'percentage' ? 'secondaryPct' : 'secondaryVal'}
-                      name={displaySecondaryKey}
-                      stroke="#E07A93"
-                      strokeWidth={3}
-                      dot={{
-                        r: 4.5,
-                        fill: '#F7C9D4',
-                        stroke: '#E07A93',
-                        strokeWidth: 2
-                      }}
-                      activeDot={{
-                        r: 6.5,
-                        fill: '#FFFFFF',
-                        stroke: '#E07A93',
-                        strokeWidth: 3
-                      }}
-                      label={<CustomPinkLabel />}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Componente de Filtro por Paquete Adquirido */}
-            <PackageSelector
-              selectedPackage={selectedPackage}
-              onSelectPackage={setSelectedPackage}
-              maxPrimary={maxPrimary}
-              maxSecondary={maxSecondary}
-            />
-          </>
-        )}
+        <ExecutiveReportView
+          data={data}
+          maxPrimary={maxPrimary}
+          maxSecondary={maxSecondary}
+          primaryKey={primaryKey}
+          secondaryKey={secondaryKey}
+          selectedPackage={selectedPackage}
+          setSelectedPackage={setSelectedPackage}
+        />
       </div>
 
       {/* Modal de Exportación y Descarga para iOS/Desktop */}
