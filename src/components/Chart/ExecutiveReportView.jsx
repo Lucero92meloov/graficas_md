@@ -81,49 +81,49 @@ export function ExecutiveReportView({
       </div>
 
       {/* Tarjetas KPI de Resumen */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-        <div className="bg-white border border-[#E2D9D2] p-3 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-[#576B80] font-bold uppercase tracking-wider">{displayPrimaryKey} Máx.</span>
-            <div className="p-1 bg-[#C8D9E6]/50 rounded text-[#3A75A4]">
+      <div className="w-full overflow-hidden grid grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+        <div className="min-w-0 bg-white border border-[#E2D9D2] p-3 rounded-xl shadow-xs overflow-hidden">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="text-[10px] text-[#576B80] font-bold uppercase tracking-wider truncate">{displayPrimaryKey} Máx.</span>
+            <div className="p-1 bg-[#C8D9E6]/50 rounded text-[#3A75A4] shrink-0">
               <Eye size={14} />
             </div>
           </div>
-          <p className="text-base sm:text-lg font-extrabold font-mono text-[#3A75A4]">{formatNumber(maxPrimary)}</p>
-          <p className="text-[10px] text-[#576B80] mt-0.5 font-medium">Promedio: {formatNumber(avgPrimary)} / toma</p>
+          <p className="text-sm sm:text-base font-extrabold font-mono text-[#3A75A4] truncate">{formatNumber(maxPrimary)}</p>
+          <p className="text-[10px] text-[#576B80] mt-0.5 font-medium truncate">Promedio: {formatNumber(avgPrimary)} / toma</p>
         </div>
 
-        <div className="bg-white border border-[#E2D9D2] p-3 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-[#576B80] font-bold uppercase tracking-wider">{displaySecondaryKey} Máx.</span>
-            <div className="p-1 bg-[#F7C9D4]/50 rounded text-[#E07A93]">
+        <div className="min-w-0 bg-white border border-[#E2D9D2] p-3 rounded-xl shadow-xs overflow-hidden">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="text-[10px] text-[#576B80] font-bold uppercase tracking-wider truncate">{displaySecondaryKey} Máx.</span>
+            <div className="p-1 bg-[#F7C9D4]/50 rounded text-[#E07A93] shrink-0">
               <Heart size={14} />
             </div>
           </div>
-          <p className="text-base sm:text-lg font-extrabold font-mono text-[#E07A93]">{formatNumber(maxSecondary)}</p>
-          <p className="text-[10px] text-[#576B80] mt-0.5 font-medium">Promedio: {formatNumber(avgSecondary)} / toma</p>
+          <p className="text-sm sm:text-base font-extrabold font-mono text-[#E07A93] truncate">{formatNumber(maxSecondary)}</p>
+          <p className="text-[10px] text-[#576B80] mt-0.5 font-medium truncate">Promedio: {formatNumber(avgSecondary)} / toma</p>
         </div>
 
-        <div className="bg-white border border-[#E2D9D2] p-3 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-[#576B80] font-bold uppercase tracking-wider">Ratio Reacción</span>
-            <div className="p-1 bg-[#FFE1E6] rounded text-[#E07A93]">
+        <div className="min-w-0 bg-white border border-[#E2D9D2] p-3 rounded-xl shadow-xs overflow-hidden">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="text-[10px] text-[#576B80] font-bold uppercase tracking-wider truncate">Ratio Reacción</span>
+            <div className="p-1 bg-[#FFE1E6] rounded text-[#E07A93] shrink-0">
               <TrendingUp size={14} />
             </div>
           </div>
-          <p className="text-base sm:text-lg font-extrabold font-mono text-[#2F4156]">{engagementRatio}%</p>
-          <p className="text-[10px] text-[#576B80] mt-0.5 font-medium">Likes vs Visualizaciones</p>
+          <p className="text-sm sm:text-base font-extrabold font-mono text-[#2F4156] truncate">{engagementRatio}%</p>
+          <p className="text-[10px] text-[#576B80] mt-0.5 font-medium truncate">Likes vs Visualizaciones</p>
         </div>
 
-        <div className="bg-white border border-[#E2D9D2] p-3 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-[#576B80] font-bold uppercase tracking-wider">Muestras / Tomas</span>
-            <div className="p-1 bg-[#FAF5F2] rounded text-[#2F4156]">
+        <div className="min-w-0 bg-white border border-[#E2D9D2] p-3 rounded-xl shadow-xs overflow-hidden">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="text-[10px] text-[#576B80] font-bold uppercase tracking-wider truncate">Muestras / Tomas</span>
+            <div className="p-1 bg-[#FAF5F2] rounded text-[#2F4156] shrink-0">
               <Calendar size={14} />
             </div>
           </div>
-          <p className="text-base sm:text-lg font-extrabold font-mono text-[#2F4156]">{totalPoints}</p>
-          <p className="text-[10px] text-[#576B80] mt-0.5 font-medium">Registros procesados</p>
+          <p className="text-sm sm:text-base font-extrabold font-mono text-[#2F4156] truncate">{totalPoints}</p>
+          <p className="text-[10px] text-[#576B80] mt-0.5 font-medium truncate">Registros procesados</p>
         </div>
       </div>
 
@@ -138,7 +138,7 @@ export function ExecutiveReportView({
         </div>
         <div className="h-[280px] sm:h-[320px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 20, right: 30, left: -15, bottom: 40 }}>
+            <LineChart data={data} margin={{ top: 20, right: 55, left: -10, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#EFE8E1" vertical={false} />
               <XAxis dataKey="fecha" stroke="#576B80" tick={{ fill: '#576B80', fontSize: 9 }} angle={-45} textAnchor="end" dy={6} interval={0} />
               <YAxis stroke="#576B80" tick={{ fill: '#576B80', fontSize: 10 }} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
@@ -151,13 +151,13 @@ export function ExecutiveReportView({
       </div>
 
       {/* Bloque Secundario: Gráfica de Pastel (Distribución Porcentual) + Resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className="md:col-span-1 bg-white border border-[#E2D9D2] rounded-xl p-3 shadow-xs flex flex-col justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
+        <div className="md:col-span-1 h-full bg-white border border-[#E2D9D2] rounded-xl p-3 shadow-xs flex flex-col justify-between">
           <div className="border-b border-[#E2D9D2] pb-2 mb-2">
             <h4 className="text-xs font-bold text-[#2F4156]">Distribución de Alcance</h4>
             <p className="text-[10px] text-[#576B80]">Relación entre {displayPrimaryKey} y {displaySecondaryKey}</p>
           </div>
-          <div className="h-[180px] w-full">
+          <div className="flex-1 min-h-[180px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value">
@@ -172,7 +172,7 @@ export function ExecutiveReportView({
         </div>
 
         {/* Resumen de Hitos y Paquete */}
-        <div className="md:col-span-2 bg-white border border-[#E2D9D2] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+        <div className="md:col-span-2 h-full bg-white border border-[#E2D9D2] rounded-xl p-4 shadow-xs flex flex-col justify-between">
           <div className="border-b border-[#E2D9D2] pb-2 mb-3">
             <h4 className="text-xs font-bold text-[#2F4156] flex items-center gap-1.5">
               <CheckCircle2 size={15} className="text-[#3A75A4]" />
@@ -180,18 +180,18 @@ export function ExecutiveReportView({
             </h4>
           </div>
 
-          <div className="space-y-2 text-xs">
-            <div className="p-2.5 bg-[#F5EFEB] rounded-xl border border-[#E2D9D2] flex items-center justify-between">
+          <div className="flex-1 flex flex-col justify-center space-y-2 text-xs">
+            <div className="p-2.5 bg-[#F5EFEB] rounded-xl border border-[#E2D9D2] flex items-center justify-between gap-2">
               <span className="font-semibold text-[#2F4156]">Pico de Visualizaciones</span>
-              <span className="font-bold font-mono text-[#3A75A4]">{formatNumber(maxPrimary)} Vistas</span>
+              <span className="font-bold font-mono text-[#3A75A4] whitespace-nowrap">{formatNumber(maxPrimary)} Vistas</span>
             </div>
-            <div className="p-2.5 bg-[#F5EFEB] rounded-xl border border-[#E2D9D2] flex items-center justify-between">
+            <div className="p-2.5 bg-[#F5EFEB] rounded-xl border border-[#E2D9D2] flex items-center justify-between gap-2">
               <span className="font-semibold text-[#2F4156]">Pico de Interacciones (Likes)</span>
-              <span className="font-bold font-mono text-[#E07A93]">{formatNumber(maxSecondary)} Likes</span>
+              <span className="font-bold font-mono text-[#E07A93] whitespace-nowrap">{formatNumber(maxSecondary)} Likes</span>
             </div>
-            <div className="p-2.5 bg-[#F5EFEB] rounded-xl border border-[#E2D9D2] flex items-center justify-between">
+            <div className="p-2.5 bg-[#F5EFEB] rounded-xl border border-[#E2D9D2] flex items-center justify-between gap-2">
               <span className="font-semibold text-[#2F4156]">Efectividad de Conversión (Engagement)</span>
-              <span className="font-bold font-mono text-[#2F4156]">{engagementRatio}% por cada 100 vistas</span>
+              <span className="font-bold font-mono text-[#2F4156] whitespace-nowrap">{engagementRatio}% Ratio</span>
             </div>
           </div>
         </div>
