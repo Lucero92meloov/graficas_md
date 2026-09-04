@@ -58,8 +58,8 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
 
       const dataUrl = await toPng(targetEl, {
         backgroundColor: '#F5EFEB',
-        quality: 1.0,
-        pixelRatio: 2,
+        quality: 0.92,
+        pixelRatio: 1.5,
         width: captureWidth,
         height: captureHeight,
         style: {
@@ -77,20 +77,23 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
         format: 'a4'
       });
 
-      // Encadenar imagen en exactamente 1 hoja A4 (210mm x 297mm) sin cortes ni divisiones feos
-      pdf.addImage(dataUrl, 'PNG', 0, 0, 210, 297);
+      // Encadenar imagen en exactamente 1 hoja A4 (210mm x 297mm) comprimida y ligera
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
 
       const timestamp = Date.now();
       const filename = `reporte-ejecutivo-${timestamp}.pdf`;
-      const pdfArrayBuffer = pdf.output('arraybuffer');
-      const pdfDataUri = pdf.output('datauristring');
-      const file = new File([pdfArrayBuffer], filename, { type: 'application/pdf' });
+      const pdfBlob = pdf.output('blob');
+      const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+      const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+      // Descargar directamente el archivo con su extensión .pdf legítima
+      pdf.save(filename);
 
       setExportModalData({
         format: 'pdf',
         filename,
         dataUrl,
-        pdfDataUri,
+        pdfBlobUrl,
         file
       });
 
