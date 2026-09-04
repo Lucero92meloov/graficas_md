@@ -118,8 +118,8 @@ const styles = StyleSheet.create({
   },
   chartImage: {
     width: '100%',
-    height: 250,
-    objectFit: 'contain'
+    height: 220,
+    objectFit: 'fill'
   },
   splitRow: {
     flexDirection: 'row',

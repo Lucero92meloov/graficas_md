@@ -53,21 +53,26 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
       await new Promise((r) => setTimeout(r, 250));
 
       const chartAreaEl = document.getElementById('line-chart-export-area') || exportBoxRef.current;
-      const totalPointsCount = data ? data.length : 0;
-      const captureWidth = Math.max(totalPointsCount * 65, 900);
+      const scrollContainer = chartAreaEl.querySelector('.overflow-x-auto');
+      const prevOverflow = scrollContainer ? scrollContainer.style.overflow : '';
+      if (scrollContainer) {
+        scrollContainer.style.overflow = 'visible';
+      }
+
+      const captureWidth = chartAreaEl.scrollWidth || 1200;
+      const captureHeight = chartAreaEl.scrollHeight || 400;
 
       const dataUrl = await toPng(chartAreaEl, {
         backgroundColor: '#FFFFFF',
         quality: 0.95,
         pixelRatio: 2,
         width: captureWidth,
-        style: {
-          width: `${captureWidth}px`,
-          maxWidth: 'none',
-          padding: '16px',
-          boxSizing: 'border-box'
-        }
+        height: captureHeight
       });
+
+      if (scrollContainer) {
+        scrollContainer.style.overflow = prevOverflow;
+      }
 
       const currentDateStr = new Date().toLocaleDateString('es-MX', {
         day: '2-digit',
