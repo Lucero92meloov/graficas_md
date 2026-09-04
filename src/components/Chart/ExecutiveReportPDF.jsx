@@ -188,6 +188,7 @@ export function ExecutiveReportPDF({
   primaryKey = 'Visualizaciones',
   secondaryKey = 'Likes',
   chartImageUri = '',
+  chartAspectRatio = null,
   currentDateStr = ''
 }) {
   const displayPrimaryKey = primaryKey === 'Ojo' ? 'Visualizaciones' : primaryKey;
@@ -202,6 +203,10 @@ export function ExecutiveReportPDF({
 
   const avgPrimary = Math.round(totalPrimary / Math.max(totalPoints, 1));
   const avgSecondary = Math.round(totalSecondary / Math.max(totalPoints, 1));
+
+  // Ancho utilizable de la hoja A4 (595.28 - 48 = 547.28 pt)
+  const pdfCardWidth = 547;
+  const calculatedHeight = chartAspectRatio ? Math.min(Math.max(Math.round(pdfCardWidth / chartAspectRatio), 140), 250) : 200;
 
   return (
     <Document title="Reporte Ejecutivo de Rendimiento">
@@ -253,7 +258,7 @@ export function ExecutiveReportPDF({
         {/* Gráfica Principal de Tendencia */}
         <View style={styles.sectionCard}>
           {chartImageUri ? (
-            <Image src={chartImageUri} style={styles.chartImage} />
+            <Image src={chartImageUri} style={[styles.chartImage, { height: calculatedHeight }]} />
           ) : null}
         </View>
 

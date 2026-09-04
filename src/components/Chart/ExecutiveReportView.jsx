@@ -25,7 +25,7 @@ const CustomBlueLabel = (props) => {
 
     const item = (data && index !== undefined && data[index]) ? data[index] : (payload || {});
     const value = item.primaryVal;
-    if (value === undefined || value === null) return null;
+    if (value === undefined || value === null || value <= 0) return null;
 
     const primaryPct = item.primaryPct || 0;
     const secondaryPct = item.secondaryPct || 0;
@@ -63,7 +63,7 @@ const CustomPinkLabel = (props) => {
 
     const item = (data && index !== undefined && data[index]) ? data[index] : (payload || {});
     const value = item.secondaryVal;
-    if (value === undefined || value === null) return null;
+    if (value === undefined || value === null || value <= 0) return null;
 
     const primaryPct = item.primaryPct || 0;
     const secondaryPct = item.secondaryPct || 0;

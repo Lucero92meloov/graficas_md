@@ -74,6 +74,8 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
         scrollContainer.style.overflow = prevOverflow;
       }
 
+      const chartAspectRatio = captureWidth / (captureHeight || 1);
+
       const currentDateStr = new Date().toLocaleDateString('es-MX', {
         day: '2-digit',
         month: 'long',
@@ -88,6 +90,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
           primaryKey={primaryKey}
           secondaryKey={secondaryKey}
           chartImageUri={dataUrl}
+          chartAspectRatio={chartAspectRatio}
           currentDateStr={currentDateStr}
         />
       );
