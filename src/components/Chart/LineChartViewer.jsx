@@ -44,7 +44,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
   const dynamicExportWidth = Math.max((data ? data.length : 0) * minPointWidth, 1200);
   const scrollPointWidth = Math.max((data ? data.length : 0) * 60, 900);
 
-  // Función de exportación de Reporte PDF responsivo multi-página
+  // Función de exportación de Reporte PDF A4 encuadrado de alta fidelidad
   const handleExportChart = async (format = 'pdf') => {
     if (!exportBoxRef.current) return;
     try {
@@ -52,91 +52,33 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
       await new Promise((r) => setTimeout(r, 250));
 
       const targetEl = exportBoxRef.current;
-      const captureWidth = dynamicExportWidth;
+      // Proporción A4 Portrait exacta: 1000px ancho x 1414px alto
+      const captureWidth = 1000;
+      const captureHeight = 1414;
 
       const dataUrl = await toPng(targetEl, {
         backgroundColor: '#F5EFEB',
         quality: 1.0,
         pixelRatio: 2,
         width: captureWidth,
+        height: captureHeight,
         style: {
           width: `${captureWidth}px`,
+          height: `${captureHeight}px`,
           maxWidth: 'none',
-          padding: '16px',
+          padding: '24px',
           boxSizing: 'border-box'
         }
       });
 
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise((resolve) => {
-        img.onload = resolve;
-      });
-
-      const imgWidth = img.width;
-      const imgHeight = img.height;
-
-      // Crear documento PDF A4 vertical o horizontal según proporciones
-      const isLandscape = imgWidth > (imgHeight * 1.2);
       const pdf = new jsPDF({
-        orientation: isLandscape ? 'landscape' : 'portrait',
+        orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      const pdfPageWidth = pdf.internal.pageSize.getWidth();
-      const pdfPageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 8; // 8mm márgenes
-
-      const printableWidth = pdfPageWidth - (margin * 2);
-      const printableHeight = pdfPageHeight - (margin * 2);
-
-      const scaledImgHeight = (imgHeight * printableWidth) / imgWidth;
-
-      if (scaledImgHeight <= printableHeight) {
-        // Cabe perfectamente en 1 sola página
-        const yPos = (pdfPageHeight - scaledImgHeight) / 2;
-        pdf.addImage(dataUrl, 'PNG', margin, Math.max(yPos, margin), printableWidth, scaledImgHeight);
-      } else {
-        // Multi-página responsiva: dividir el lienzo por segmentos de alto sin deformar ni aplastar
-        const canvasPageHeight = (imgWidth * printableHeight) / printableWidth;
-        const sourceCanvas = document.createElement('canvas');
-        sourceCanvas.width = imgWidth;
-        sourceCanvas.height = imgHeight;
-        const ctx = sourceCanvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-
-        let heightLeft = imgHeight;
-        let pageIndex = 0;
-
-        while (heightLeft > 0) {
-          const sliceHeight = Math.min(canvasPageHeight, heightLeft);
-          const pageCanvas = document.createElement('canvas');
-          pageCanvas.width = imgWidth;
-          pageCanvas.height = sliceHeight;
-          const pageCtx = pageCanvas.getContext('2d');
-
-          pageCtx.drawImage(
-            sourceCanvas,
-            0, pageIndex * canvasPageHeight,
-            imgWidth, sliceHeight,
-            0, 0,
-            imgWidth, sliceHeight
-          );
-
-          const sliceDataUrl = pageCanvas.toDataURL('image/png', 1.0);
-          const sliceMmHeight = (sliceHeight * printableWidth) / imgWidth;
-
-          if (pageIndex > 0) {
-            pdf.addPage();
-          }
-
-          pdf.addImage(sliceDataUrl, 'PNG', margin, margin, printableWidth, sliceMmHeight);
-
-          heightLeft -= canvasPageHeight;
-          pageIndex++;
-        }
-      }
+      // Encadenar imagen en exactamente 1 hoja A4 (210mm x 297mm) sin cortes ni divisiones feos
+      pdf.addImage(dataUrl, 'PNG', 0, 0, 210, 297);
 
       const timestamp = Date.now();
       const filename = `reporte-ejecutivo-${timestamp}.pdf`;
@@ -351,7 +293,8 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
       <div
         ref={exportBoxRef}
         style={{
-          width: isExporting ? `${dynamicExportWidth}px` : '100%',
+          width: isExporting ? '1000px' : '100%',
+          height: isExporting ? '1414px' : 'auto',
           minWidth: '100%'
         }}
         className="bg-[#F5EFEB] space-y-3"
