@@ -206,7 +206,7 @@ export function ExecutiveReportView({
       </div>
 
       {/* Bloque Principal: Gráfica de Tendencia (Lineal) */}
-      <div className="bg-white border border-[#E2D9D2] rounded-xl p-3 sm:p-4 shadow-xs">
+      <div id="line-chart-export-area" className="bg-white border border-[#E2D9D2] rounded-xl p-3 sm:p-4 shadow-xs">
         <div className="flex items-center justify-between mb-3 border-b border-[#E2D9D2] pb-2">
           <h3 className="text-xs font-bold text-[#2F4156] flex items-center gap-1.5">
             <TrendingUp size={15} className="text-[#3A75A4]" />

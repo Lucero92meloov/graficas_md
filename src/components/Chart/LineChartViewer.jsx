@@ -52,21 +52,19 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
       setIsExporting(true);
       await new Promise((r) => setTimeout(r, 250));
 
-      const targetEl = exportBoxRef.current;
-      const captureWidth = 1000;
-      const captureHeight = 1414;
+      const chartAreaEl = document.getElementById('line-chart-export-area') || exportBoxRef.current;
+      const totalPointsCount = data ? data.length : 0;
+      const captureWidth = Math.max(totalPointsCount * 65, 900);
 
-      const dataUrl = await toPng(targetEl, {
-        backgroundColor: '#F5EFEB',
-        quality: 0.92,
-        pixelRatio: 1.5,
+      const dataUrl = await toPng(chartAreaEl, {
+        backgroundColor: '#FFFFFF',
+        quality: 0.95,
+        pixelRatio: 2,
         width: captureWidth,
-        height: captureHeight,
         style: {
           width: `${captureWidth}px`,
-          height: `${captureHeight}px`,
           maxWidth: 'none',
-          padding: '24px',
+          padding: '16px',
           boxSizing: 'border-box'
         }
       });

@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   sectionCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    padding: 12,
+    padding: 6,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E2D9D2'
@@ -118,9 +118,8 @@ const styles = StyleSheet.create({
   },
   chartImage: {
     width: '100%',
-    height: 180,
-    objectFit: 'contain',
-    borderRadius: 4
+    height: 250,
+    objectFit: 'contain'
   },
   splitRow: {
     flexDirection: 'row',
@@ -253,7 +252,6 @@ export function ExecutiveReportPDF({
 
         {/* Gráfica Principal de Tendencia */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionHeader}>Curva de Crecimiento y Rendimiento Temporal ({totalPoints} Puntos)</Text>
           {chartImageUri ? (
             <Image src={chartImageUri} style={styles.chartImage} />
           ) : null}
