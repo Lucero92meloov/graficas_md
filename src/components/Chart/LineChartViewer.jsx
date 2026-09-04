@@ -15,9 +15,10 @@ import { PackageSelector } from '../PackageFilter/PackageSelector';
 import { PieChartViewer } from './PieChartViewer';
 import { BarChartViewer } from './BarChartViewer';
 import { ExecutiveReportView } from './ExecutiveReportView';
+import { ExecutiveReportPDF } from './ExecutiveReportPDF';
 import { ExportModal } from '../UI/ExportModal';
 import { toPng } from 'html-to-image';
-import { jsPDF } from 'jspdf';
+import { pdf as renderPdf } from '@react-pdf/renderer';
 import confetti from 'canvas-confetti';
 
 export function LineChartViewer({ markdownContent, exportHandlerRef }) {
@@ -44,7 +45,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
   const dynamicExportWidth = Math.max((data ? data.length : 0) * minPointWidth, 1200);
   const scrollPointWidth = Math.max((data ? data.length : 0) * 60, 900);
 
-  // Función de exportación de Reporte PDF A4 encuadrado de alta fidelidad
+  // Función de exportación de Reporte PDF nativo con @react-pdf/renderer
   const handleExportChart = async (format = 'pdf') => {
     if (!exportBoxRef.current) return;
     try {
@@ -52,7 +53,6 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
       await new Promise((r) => setTimeout(r, 250));
 
       const targetEl = exportBoxRef.current;
-      // Proporción A4 Portrait exacta: 1000px ancho x 1414px alto
       const captureWidth = 1000;
       const captureHeight = 1414;
 
@@ -71,23 +71,37 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
         }
       });
 
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
+      const currentDateStr = new Date().toLocaleDateString('es-MX', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
       });
 
-      // Encadenar imagen en exactamente 1 hoja A4 (210mm x 297mm) comprimida y ligera
-      pdf.addImage(dataUrl, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      const pdfDoc = (
+        <ExecutiveReportPDF
+          data={data}
+          maxPrimary={maxPrimary}
+          maxSecondary={maxSecondary}
+          primaryKey={primaryKey}
+          secondaryKey={secondaryKey}
+          chartImageUri={dataUrl}
+          currentDateStr={currentDateStr}
+        />
+      );
 
+      const pdfBlob = await renderPdf(pdfDoc).toBlob();
       const timestamp = Date.now();
       const filename = `reporte-ejecutivo-${timestamp}.pdf`;
-      const pdfBlob = pdf.output('blob');
       const pdfBlobUrl = URL.createObjectURL(pdfBlob);
       const file = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-      // Descargar directamente el archivo con su extensión .pdf legítima
-      pdf.save(filename);
+      // Descargar directamente el archivo PDF vectorial
+      const link = document.createElement('a');
+      link.href = pdfBlobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       setExportModalData({
         format: 'pdf',
@@ -103,7 +117,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
         origin: { y: 0.6 }
       });
     } catch (err) {
-      console.error('Error al exportar reporte PDF:', err);
+      console.error('Error al exportar reporte PDF con @react-pdf/renderer:', err);
       alert('Hubo un inconveniente al generar el PDF. Intenta nuevamente.');
     } finally {
       setIsExporting(false);
