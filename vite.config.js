@@ -6,4 +6,10 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: './', // Permite que funcione en GitHub Pages, Vercel o cualquier servidor estático gratis
+  server: {
+    host: true, // Expone el servidor en la red local (ej. 192.168.x.x) para probar en iPhone
+  },
+  preview: {
+    host: true,
+  }
 });
