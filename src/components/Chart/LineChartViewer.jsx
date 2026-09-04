@@ -45,95 +45,114 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
   const dynamicExportWidth = Math.max((data ? data.length : 0) * minPointWidth, 1200);
   const scrollPointWidth = Math.max((data ? data.length : 0) * 60, 900);
 
-  // Función de descarga e interacción compatible con iPhone, Android y escritorio (PNG o PDF)
-  const handleExportChart = async (format = 'png') => {
+  // Función de exportación de Reporte PDF responsivo multi-página
+  const handleExportChart = async (format = 'pdf') => {
     if (!exportBoxRef.current) return;
     try {
       setIsExporting(true);
       await new Promise((r) => setTimeout(r, 250));
 
       const targetEl = exportBoxRef.current;
+      // Ancho dinámico adaptativo para mantener proporciones nítidas y alta resolución
+      const captureWidth = Math.max((data ? data.length : 0) * 55, 1080);
 
       const dataUrl = await toPng(targetEl, {
         backgroundColor: '#F5EFEB',
         quality: 1.0,
         pixelRatio: 2,
-        width: dynamicExportWidth,
+        width: captureWidth,
         style: {
-          width: `${dynamicExportWidth}px`,
-          overflow: 'visible',
-          maxWidth: 'none'
+          width: `${captureWidth}px`,
+          maxWidth: 'none',
+          padding: '16px',
+          boxSizing: 'border-box'
         }
       });
 
-      const timestamp = Date.now();
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
 
-      if (format === 'pdf') {
-        // Exportar a PDF usando jsPDF
-        const img = new Image();
-        img.src = dataUrl;
-        await new Promise((resolve) => {
-          img.onload = resolve;
-        });
+      const imgWidth = img.width;
+      const imgHeight = img.height;
 
-        const imgWidth = img.width;
-        const imgHeight = img.height;
+      // Crear documento PDF A4 vertical o horizontal según proporciones
+      const isLandscape = imgWidth > (imgHeight * 1.2);
+      const pdf = new jsPDF({
+        orientation: isLandscape ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
-        // Crear documento PDF A4 horizontal o vertical según proporciones
-        const pdf = new jsPDF({
-          orientation: imgWidth >= imgHeight ? 'landscape' : 'portrait',
-          unit: 'mm',
-          format: 'a4'
-        });
+      const pdfPageWidth = pdf.internal.pageSize.getWidth();
+      const pdfPageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 8; // 8mm márgenes
 
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 8;
+      const printableWidth = pdfPageWidth - (margin * 2);
+      const printableHeight = pdfPageHeight - (margin * 2);
 
-        const maxWidth = pageWidth - (margin * 2);
-        const maxHeight = pageHeight - (margin * 2);
+      const scaledImgHeight = (imgHeight * printableWidth) / imgWidth;
 
-        const imgAspect = imgWidth / imgHeight;
-        let renderWidth = maxWidth;
-        let renderHeight = maxWidth / imgAspect;
-
-        if (renderHeight > maxHeight) {
-          renderHeight = maxHeight;
-          renderWidth = maxHeight * imgAspect;
-        }
-
-        const xPos = (pageWidth - renderWidth) / 2;
-        const yPos = (pageHeight - renderHeight) / 2;
-
-        pdf.addImage(dataUrl, 'PNG', xPos, yPos, renderWidth, renderHeight);
-
-        const filename = `grafica-vistas-likes-${timestamp}.pdf`;
-        const pdfArrayBuffer = pdf.output('arraybuffer');
-        const pdfDataUri = pdf.output('datauristring');
-        const file = new File([pdfArrayBuffer], filename, { type: 'application/pdf' });
-
-        setExportModalData({
-          format: 'pdf',
-          filename,
-          dataUrl,
-          pdfDataUri,
-          file
-        });
+      if (scaledImgHeight <= printableHeight) {
+        // Cabe perfectamente en 1 sola página
+        const yPos = (pdfPageHeight - scaledImgHeight) / 2;
+        pdf.addImage(dataUrl, 'PNG', margin, Math.max(yPos, margin), printableWidth, scaledImgHeight);
       } else {
-        // Exportar a PNG
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        const pngArrayBuffer = await blob.arrayBuffer();
-        const filename = `grafica-vistas-likes-${timestamp}.png`;
-        const file = new File([pngArrayBuffer], filename, { type: 'image/png' });
+        // Multi-página responsiva: dividir el lienzo por segmentos de alto sin deformar ni aplastar
+        const canvasPageHeight = (imgWidth * printableHeight) / printableWidth;
+        const sourceCanvas = document.createElement('canvas');
+        sourceCanvas.width = imgWidth;
+        sourceCanvas.height = imgHeight;
+        const ctx = sourceCanvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
 
-        setExportModalData({
-          format: 'png',
-          filename,
-          dataUrl,
-          file
-        });
+        let heightLeft = imgHeight;
+        let pageIndex = 0;
+
+        while (heightLeft > 0) {
+          const sliceHeight = Math.min(canvasPageHeight, heightLeft);
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = imgWidth;
+          pageCanvas.height = sliceHeight;
+          const pageCtx = pageCanvas.getContext('2d');
+
+          pageCtx.drawImage(
+            sourceCanvas,
+            0, pageIndex * canvasPageHeight,
+            imgWidth, sliceHeight,
+            0, 0,
+            imgWidth, sliceHeight
+          );
+
+          const sliceDataUrl = pageCanvas.toDataURL('image/png', 1.0);
+          const sliceMmHeight = (sliceHeight * printableWidth) / imgWidth;
+
+          if (pageIndex > 0) {
+            pdf.addPage();
+          }
+
+          pdf.addImage(sliceDataUrl, 'PNG', margin, margin, printableWidth, sliceMmHeight);
+
+          heightLeft -= canvasPageHeight;
+          pageIndex++;
+        }
       }
+
+      const timestamp = Date.now();
+      const filename = `reporte-ejecutivo-${timestamp}.pdf`;
+      const pdfArrayBuffer = pdf.output('arraybuffer');
+      const pdfDataUri = pdf.output('datauristring');
+      const file = new File([pdfArrayBuffer], filename, { type: 'application/pdf' });
+
+      setExportModalData({
+        format: 'pdf',
+        filename,
+        dataUrl,
+        pdfDataUri,
+        file
+      });
 
       confetti({
         particleCount: 70,
@@ -141,8 +160,8 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
         origin: { y: 0.6 }
       });
     } catch (err) {
-      console.error('Error al exportar gráfica:', err);
-      alert('Hubo un inconveniente al generar el archivo. Intenta nuevamente.');
+      console.error('Error al exportar reporte PDF:', err);
+      alert('Hubo un inconveniente al generar el PDF. Intenta nuevamente.');
     } finally {
       setIsExporting(false);
     }
@@ -395,23 +414,13 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
             )}
 
             <button
-              onClick={() => handleExportChart('png')}
-              disabled={isExporting}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#E07A93] hover:bg-[#c9627a] text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-              title="Descargar o guardar la vista actual como imagen PNG"
-            >
-              <ImageDown size={14} />
-              <span>PNG</span>
-            </button>
-
-            <button
               onClick={() => handleExportChart('pdf')}
               disabled={isExporting}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#2F4156] hover:bg-[#1f2d3d] text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-              title="Descargar o guardar la vista actual como documento PDF"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#2F4156] hover:bg-[#1f2d3d] text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+              title="Descargar o guardar el reporte en documento PDF"
             >
               <FileText size={14} />
-              <span>PDF</span>
+              <span>Reporte PDF</span>
             </button>
           </div>
         </div>
