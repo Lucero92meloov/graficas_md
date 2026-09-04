@@ -5,8 +5,9 @@ import confetti from 'canvas-confetti';
 export function ExportModal({ isOpen, onClose, exportData }) {
   if (!isOpen || !exportData) return null;
 
-  const { format, filename, dataUrl, blobUrl, file } = exportData;
+  const { format, filename, dataUrl, pdfDataUri, file } = exportData;
   const isPdf = format === 'pdf';
+  const targetDataUri = isPdf ? pdfDataUri : dataUrl;
   const isWebShareSupported = typeof navigator !== 'undefined' && !!navigator.canShare;
 
   const handleShare = async () => {
@@ -14,7 +15,7 @@ export function ExportModal({ isOpen, onClose, exportData }) {
       try {
         await navigator.share({
           title: 'Reporte de Rendimiento - MD Chart Studio',
-          text: `Reporte de gráfica de visualizaciones y likes (${format.toUpperCase()})`,
+          text: `Reporte de gráfica (${format.toUpperCase()})`,
           files: [file]
         });
         confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
@@ -23,36 +24,80 @@ export function ExportModal({ isOpen, onClose, exportData }) {
           console.error('Error al compartir:', err);
         }
       }
-    } else if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Reporte de Rendimiento - MD Chart Studio',
-          url: blobUrl || dataUrl
-        });
-        confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          console.error('Error al compartir enlace:', err);
-        }
-      }
     } else {
-      handleOpenNewTab();
+      handleDownloadDirect();
     }
   };
 
   const handleOpenNewTab = () => {
-    const targetUrl = blobUrl || dataUrl;
-    if (targetUrl) {
-      window.open(targetUrl, '_blank');
+    if (!targetDataUri) return;
+    try {
+      const newWin = window.open('', '_blank');
+      if (newWin) {
+        if (isPdf) {
+          newWin.document.write(`
+            <!DOCTYPE html>
+            <html lang="es">
+              <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${filename}</title>
+                <style>
+                  html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #525659; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+                  .bar { background: #2F4156; color: white; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
+                  .title { font-size: 14px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                  .btn { background: #C8D9E6; color: #2F4156; text-decoration: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
+                  iframe { width: 100%; height: calc(100% - 46px); border: none; }
+                </style>
+              </head>
+              <body>
+                <div class="bar">
+                  <div class="title">${filename}</div>
+                  <a class="btn" href="${targetDataUri}" download="${filename}">Guardar PDF</a>
+                </div>
+                <iframe src="${targetDataUri}"></iframe>
+              </body>
+            </html>
+          `);
+        } else {
+          newWin.document.write(`
+            <!DOCTYPE html>
+            <html lang="es">
+              <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${filename}</title>
+                <style>
+                  html, body { margin: 0; padding: 0; width: 100%; min-height: 100%; background: #F5EFEB; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+                  .container { padding: 16px; text-align: center; max-width: 100%; box-sizing: border-box; }
+                  img { max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+                  .tip { margin-top: 16px; color: #2F4156; font-size: 13px; font-weight: 600; background: #C8D9E6; padding: 10px 16px; border-radius: 10px; display: inline-block; }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <img src="${targetDataUri}" alt="${filename}" />
+                  <br />
+                  <div class="tip">💡 Mantén presionada la imagen para "Guardar en Fotos" o usar el menú de Safari.</div>
+                </div>
+              </body>
+            </html>
+          `);
+        }
+      } else {
+        window.location.href = targetDataUri;
+      }
       confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+    } catch (err) {
+      console.error('Error abriendo pestaña:', err);
+      window.location.href = targetDataUri;
     }
   };
 
   const handleDownloadDirect = () => {
-    const targetUrl = blobUrl || dataUrl;
-    if (targetUrl) {
+    if (targetDataUri) {
       const link = document.createElement('a');
-      link.href = targetUrl;
+      link.href = targetDataUri;
       link.download = filename;
       document.body.appendChild(link);
       link.click();

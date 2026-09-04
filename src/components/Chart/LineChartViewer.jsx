@@ -108,30 +108,29 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
         pdf.addImage(dataUrl, 'PNG', xPos, yPos, renderWidth, renderHeight);
 
         const filename = `grafica-vistas-likes-${timestamp}.pdf`;
-        const pdfBlob = pdf.output('blob');
-        const pdfBlobUrl = URL.createObjectURL(pdfBlob);
-        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+        const pdfArrayBuffer = pdf.output('arraybuffer');
+        const pdfDataUri = pdf.output('datauristring');
+        const file = new File([pdfArrayBuffer], filename, { type: 'application/pdf' });
 
         setExportModalData({
           format: 'pdf',
           filename,
           dataUrl,
-          blobUrl: pdfBlobUrl,
+          pdfDataUri,
           file
         });
       } else {
         // Exportar a PNG
         const res = await fetch(dataUrl);
         const blob = await res.blob();
+        const pngArrayBuffer = await blob.arrayBuffer();
         const filename = `grafica-vistas-likes-${timestamp}.png`;
-        const pngBlobUrl = URL.createObjectURL(blob);
-        const file = new File([blob], filename, { type: 'image/png' });
+        const file = new File([pngArrayBuffer], filename, { type: 'image/png' });
 
         setExportModalData({
           format: 'png',
           filename,
           dataUrl,
-          blobUrl: pngBlobUrl,
           file
         });
       }
