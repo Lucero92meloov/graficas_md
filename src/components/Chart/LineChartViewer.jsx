@@ -52,8 +52,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
       await new Promise((r) => setTimeout(r, 250));
 
       const targetEl = exportBoxRef.current;
-      // Ancho dinámico adaptativo para mantener proporciones nítidas y alta resolución
-      const captureWidth = Math.max((data ? data.length : 0) * 55, 1080);
+      const captureWidth = dynamicExportWidth;
 
       const dataUrl = await toPng(targetEl, {
         backgroundColor: '#F5EFEB',
