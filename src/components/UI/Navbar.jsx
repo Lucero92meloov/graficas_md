@@ -1,10 +1,10 @@
 import React from 'react';
-import { Activity, Edit3, LineChart, RefreshCw, ImageDown } from 'lucide-react';
+import { Activity, Edit3, LineChart, RefreshCw, ImageDown, FileText } from 'lucide-react';
 
 export function Navbar({
   viewMode,
   setViewMode,
-  onDownloadImage,
+  onDownload,
   onResetDefault
 }) {
   return (
@@ -76,12 +76,21 @@ export function Navbar({
         </button>
 
         <button
-          onClick={onDownloadImage}
+          onClick={() => onDownload('png')}
           className="p-2 sm:px-3 sm:py-1.5 text-xs bg-[#C8D9E6] hover:bg-[#b5cadb] text-[#2F4156] font-bold border border-[#9fbcd2] rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
-          title="Descargar la imagen de la gráfica como PNG"
+          title="Descargar la gráfica como imagen PNG"
         >
-          <ImageDown size={16} className="text-[#2F4156]" />
-          <span className="hidden sm:inline">Descargar Imagen PNG</span>
+          <ImageDown size={15} className="text-[#2F4156]" />
+          <span className="hidden sm:inline">PNG</span>
+        </button>
+
+        <button
+          onClick={() => onDownload('pdf')}
+          className="p-2 sm:px-3 sm:py-1.5 text-xs bg-[#2F4156] hover:bg-[#1f2d3d] text-white font-bold border border-[#2F4156] rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+          title="Descargar la gráfica como documento PDF"
+        >
+          <FileText size={15} className="text-white" />
+          <span className="hidden sm:inline">PDF</span>
         </button>
       </div>
     </header>

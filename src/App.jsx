@@ -60,9 +60,9 @@ export default function App() {
     setMarkdownContent(DEFAULT_MARKDOWN);
   };
 
-  const handleTriggerDownloadImage = () => {
+  const handleTriggerDownload = (format = 'png') => {
     if (exportHandlerRef.current) {
-      exportHandlerRef.current();
+      exportHandlerRef.current(format);
     }
   };
 
@@ -72,7 +72,7 @@ export default function App() {
       <Navbar
         viewMode={viewMode}
         setViewMode={setViewMode}
-        onDownloadImage={handleTriggerDownloadImage}
+        onDownload={handleTriggerDownload}
         onResetDefault={handleResetDefault}
       />
 
