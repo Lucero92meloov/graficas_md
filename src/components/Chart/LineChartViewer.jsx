@@ -92,6 +92,7 @@ export function LineChartViewer({ markdownContent, exportHandlerRef }) {
           chartImageUri={dataUrl}
           chartAspectRatio={chartAspectRatio}
           currentDateStr={currentDateStr}
+          selectedPackage={selectedPackage}
         />
       );
 

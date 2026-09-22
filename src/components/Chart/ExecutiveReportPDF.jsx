@@ -1,5 +1,6 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { PACKAGES } from '../PackageFilter/PackageSelector';
 
 const styles = StyleSheet.create({
   page: {
@@ -99,6 +100,90 @@ const styles = StyleSheet.create({
     color: '#576B80',
     marginTop: 2
   },
+  packageCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E2D9D2'
+  },
+  packageHeader: {
+    marginBottom: 6
+  },
+  packageTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#2F4156'
+  },
+  packageRow: {
+    flexDirection: 'row',
+    gap: 8
+  },
+  packageBox: {
+    flex: 1,
+    backgroundColor: '#F5EFEB',
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1
+  },
+  packageBoxHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4
+  },
+  packageBoxLabel: {
+    fontSize: 9,
+    fontWeight: 'bold'
+  },
+  packageBoxRatio: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#2F4156'
+  },
+  packageBoxFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  packageBoxPct: {
+    fontSize: 13,
+    fontWeight: 'bold'
+  },
+  pillSuccessBlue: {
+    backgroundColor: '#C8D9E6',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2
+  },
+  pillSuccessBlueText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#2F4156'
+  },
+  pillSuccessPink: {
+    backgroundColor: '#F7C9D4',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2
+  },
+  pillSuccessPinkText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#2F4156'
+  },
+  pillDanger: {
+    backgroundColor: '#FFE1E6',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2
+  },
+  pillDangerText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#E07A93'
+  },
   sectionCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
@@ -189,7 +274,8 @@ export function ExecutiveReportPDF({
   secondaryKey = 'Likes',
   chartImageUri = '',
   chartAspectRatio = null,
-  currentDateStr = ''
+  currentDateStr = '',
+  selectedPackage = null
 }) {
   const displayPrimaryKey = primaryKey === 'Ojo' ? 'Visualizaciones' : primaryKey;
   const displaySecondaryKey = (secondaryKey === 'Corazón' || secondaryKey === 'Comentarios') ? 'Likes' : secondaryKey;
@@ -203,6 +289,28 @@ export function ExecutiveReportPDF({
 
   const avgPrimary = Math.round(totalPrimary / Math.max(totalPoints, 1));
   const avgSecondary = Math.round(totalSecondary / Math.max(totalPoints, 1));
+
+  // Métricas del paquete seleccionado
+  const activePkg = PACKAGES.find((p) => p.id === selectedPackage);
+  let viewsPct = '0';
+  let likesPct = '0';
+  let viewsMissing = 0;
+  let likesMissing = 0;
+  let viewsExtra = 0;
+  let likesExtra = 0;
+  let isViewsComplete = false;
+  let isLikesComplete = false;
+
+  if (activePkg) {
+    viewsPct = ((maxPrimary / activePkg.views) * 100).toFixed(1);
+    likesPct = ((maxSecondary / activePkg.likes) * 100).toFixed(1);
+    isViewsComplete = maxPrimary >= activePkg.views;
+    isLikesComplete = maxSecondary >= activePkg.likes;
+    viewsMissing = activePkg.views - maxPrimary;
+    likesMissing = activePkg.likes - maxSecondary;
+    viewsExtra = maxPrimary - activePkg.views;
+    likesExtra = maxSecondary - activePkg.likes;
+  }
 
   // Ancho utilizable de la hoja A4 (595.28 - 48 = 547.28 pt)
   const pdfCardWidth = 547;
@@ -254,6 +362,65 @@ export function ExecutiveReportPDF({
             <Text style={styles.kpiSubtext}>Registros procesados</Text>
           </View>
         </View>
+
+        {/* Evaluación de Paquete (si hay un paquete activo) */}
+        {activePkg && (
+          <View style={styles.packageCard}>
+            <View style={styles.packageHeader}>
+              <Text style={styles.packageTitle}>
+                Evaluación de Paquete: <Text style={{ color: '#3A75A4' }}>{activePkg.label}</Text>
+              </Text>
+            </View>
+
+            <View style={styles.packageRow}>
+              {/* Tarjeta Visualizaciones */}
+              <View style={[styles.packageBox, { borderColor: '#9FBCD2' }]}>
+                <View style={styles.packageBoxHeader}>
+                  <Text style={[styles.packageBoxLabel, { color: '#3A75A4' }]}>Visualizaciones</Text>
+                  <Text style={styles.packageBoxRatio}>
+                    {formatNumber(maxPrimary)} / {formatNumber(activePkg.views)}
+                  </Text>
+                </View>
+
+                <View style={styles.packageBoxFooter}>
+                  <Text style={[styles.packageBoxPct, { color: '#3A75A4' }]}>
+                    {viewsPct}%
+                  </Text>
+                  <View style={isViewsComplete ? styles.pillSuccessBlue : styles.pillDanger}>
+                    <Text style={isViewsComplete ? styles.pillSuccessBlueText : styles.pillDangerText}>
+                      {isViewsComplete
+                        ? `+${formatNumber(viewsExtra)} extra (+${(viewsPct - 100).toFixed(1)}% 🎉)`
+                        : `Faltan ${formatNumber(viewsMissing)} vistas (${(100 - viewsPct).toFixed(1)}%)`}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Tarjeta Likes */}
+              <View style={[styles.packageBox, { borderColor: '#E8A3B4' }]}>
+                <View style={styles.packageBoxHeader}>
+                  <Text style={[styles.packageBoxLabel, { color: '#E07A93' }]}>Likes</Text>
+                  <Text style={styles.packageBoxRatio}>
+                    {formatNumber(maxSecondary)} / {formatNumber(activePkg.likes)}
+                  </Text>
+                </View>
+
+                <View style={styles.packageBoxFooter}>
+                  <Text style={[styles.packageBoxPct, { color: '#E07A93' }]}>
+                    {likesPct}%
+                  </Text>
+                  <View style={isLikesComplete ? styles.pillSuccessPink : styles.pillDanger}>
+                    <Text style={isLikesComplete ? styles.pillSuccessPinkText : styles.pillDangerText}>
+                      {isLikesComplete
+                        ? `+${formatNumber(likesExtra)} extra (+${(likesPct - 100).toFixed(1)}% 🎉)`
+                        : `Faltan ${formatNumber(likesMissing)} likes (${(100 - likesPct).toFixed(1)}%)`}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Gráfica Principal de Tendencia */}
         <View style={styles.sectionCard}>
